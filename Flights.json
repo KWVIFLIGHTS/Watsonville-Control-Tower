@@ -1,8 +1,31 @@
 {
-  "arrivals": [
-    {"ident": "N123AB", "origin": "KRHV"}
-  ],
-  "departures": [
-    {"ident": "N456CD", "destination": "KPAO"}
-  ]
+    "last_updated": "03:33",
+    "arrivals": [
+        {
+            "ident": "N931E",
+            "type": "BE58",
+            "origin": "KWVI",
+            "time": "18:45"
+        },
+        {
+            "ident": "N911MS",
+            "type": "C172",
+            "origin": "KRHV",
+            "time": "18:30"
+        }
+    ],
+    "departures": [
+        {
+            "ident": "N704NQ",
+            "type": "P28A",
+            "destination": "KOAR",
+            "time": "18:55"
+        },
+        {
+            "ident": "N180ZR",
+            "type": "C182",
+            "destination": "KPAO",
+            "time": "18:50"
+        }
+    ]
 }
