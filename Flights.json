@@ -1,0 +1,8 @@
+{
+  "arrivals": [
+    {"ident": "N123AB", "origin": "KRHV"}
+  ],
+  "departures": [
+    {"ident": "N456CD", "destination": "KPAO"}
+  ]
+}
