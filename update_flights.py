@@ -1,12 +1,12 @@
 import json
 import datetime
 
-# Get current time for the board
 current_time = datetime.datetime.now().strftime("%H:%M")
 
 data = {
     "last_updated": current_time,
     "arrivals": [
+        # Make sure these 4 fields exist for each flight
         {"ident": "N931E", "type": "BE58", "origin": "KWVI", "time": "18:45"},
         {"ident": "N911MS", "type": "C172", "origin": "KRHV", "time": "18:30"}
     ],
@@ -16,8 +16,8 @@ data = {
     ]
 }
 
-# SAVE AS Flights.json (Capital F)
+# SAVE AS Flights.json (Capital F) to match the HTML fetch
 with open('Flights.json', 'w') as f:
     json.dump(data, f, indent=4)
 
-print(f"Successfully updated Flights.json at {current_time}")
+print(f"Updated Flights.json at {current_time}")
