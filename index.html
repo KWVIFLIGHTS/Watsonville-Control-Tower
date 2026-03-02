@@ -3,13 +3,13 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>KWVI Terminal Board (Split-Flap View)</title>
+    <title>KWVI Terminal Board</title>
     <link href="https://fonts.googleapis.com/css2?family=Mode+7&family=Source+Code+Pro:wght@400;700&display=swap" rel="stylesheet">
     <style>
         body { 
             background-color: #050505; 
             color: #d1d5db; 
-            font-family: 'Source Code Pro', monospace; /* Strong Technical feel fallback */
+            font-family: 'Source Code Pro', monospace; 
             margin: 0; 
             padding: 20px; 
             text-transform: uppercase; 
@@ -34,7 +34,7 @@
         }
 
         h1 { 
-            color: #ff9f00; /* Amber from the reference image */
+            color: #ff9f00; 
             letter-spacing: 3px; 
             font-size: 2.8rem; 
             margin: 0; 
@@ -49,15 +49,14 @@
         .section-header-container {
             display: flex;
             align-items: center;
-            margin-top: 30px;
+            margin-top: 35px;
             margin-bottom: 10px;
         }
 
-        .plane-logo {
+        .icon {
             color: #ff9f00;
-            font-size: 2.5rem;
+            font-size: 2.2rem;
             margin-right: 15px;
-            /* Placeholder for plane logo: using Unicode character */
             display: inline-block;
         }
 
@@ -66,7 +65,6 @@
             font-size: 1.8rem; 
             text-decoration: underline; 
             margin: 0;
-            font-family: 'Source Code Pro', monospace;
             font-weight: 700;
         }
 
@@ -74,7 +72,6 @@
             width: 100%; 
             border-collapse: collapse; 
             font-size: 1.3rem; 
-            /* Mode 7 font is only for the data rows, not the headers */
         }
 
         th { 
@@ -82,30 +79,39 @@
             padding: 10px; 
             color: #9ca3af; 
             border-bottom: 1px solid #222; 
-            font-weight: 700;
-            font-family: 'Source Code Pro', monospace;
         }
 
         td { 
             padding: 10px; 
             border-bottom: 1px solid #111; 
-            color: #ff9f00; /* Amber for data */
-            font-family: 'Mode 7', monospace; /* The stylized, blocky font */
+            color: #ff9f00; 
+            font-family: 'Mode 7', monospace; 
             letter-spacing: 1px;
         }
 
-        /* Classes from your existing structure, updated for the new theme */
-        .flight-id { 
-            color: #ff9f00; 
-            font-weight: bold; 
+        .flight-id { font-weight: bold; }
+
+        /* Weather Section Styling */
+        .weather-grid {
+            display: flex;
+            justify-content: space-between;
+            background-color: #0a0a0a;
+            border: 1px solid #222;
+            padding: 20px;
+            margin-top: 10px;
         }
 
-        .aircraft-type { 
-            color: #ff9f00; /* Reverted to amber to match the split-flap look */
+        .wx-label {
+            color: #9ca3af;
+            font-weight: 700;
+            margin-right: 10px;
+            font-size: 1.1rem;
         }
 
-        .status-time { 
-            color: #ff9f00; /* Time is amber in reference image */
+        .wx-data {
+            color: #ff9f00;
+            font-family: 'Mode 7', monospace;
+            font-size: 1.4rem;
         }
     </style>
 </head>
@@ -118,18 +124,11 @@
     </div>
 
     <div class="section-header-container">
-        <div class="plane-logo">&#9992;</div>
-        <div class="section-title">DEPARTURES</div>
+        <div class="icon">&#9992;</div> <div class="section-title">DEPARTURES</div>
     </div>
-
     <table>
         <thead>
-            <tr>
-                <th>Flight</th>
-                <th>Type</th>
-                <th>Destination</th>
-                <th>Time</th>
-            </tr>
+            <tr><th>Flight</th><th>Type</th><th>Destination</th><th>Time</th></tr>
         </thead>
         <tbody id="departures-list">
             <tr><td colspan="4">LOADING DATA...</td></tr>
@@ -137,27 +136,29 @@
     </table>
 
     <div class="section-header-container">
-        <div class="plane-logo">&#9992;</div>
-        <div class="section-title">ARRIVALS</div>
+        <div class="icon">&#9992;</div> <div class="section-title">ARRIVALS</div>
     </div>
-
     <table>
         <thead>
-            <tr>
-                <th>Flight</th>
-                <th>Type</th>
-                <th>Origin</th>
-                <th>Time</th>
-            </tr>
+            <tr><th>Flight</th><th>Type</th><th>Origin</th><th>Time</th></tr>
         </thead>
         <tbody id="arrivals-list">
             <tr><td colspan="4">LOADING DATA...</td></tr>
         </tbody>
     </table>
+
+    <div class="section-header-container">
+        <div class="icon">&#9728;</div> <div class="section-title">LOCAL WEATHER</div>
+    </div>
+    <div class="weather-grid">
+        <div><span class="wx-label">CONDITIONS:</span> <span id="wx-cond" class="wx-data">FETCHING...</span></div>
+        <div><span class="wx-label">TEMP:</span> <span id="wx-temp" class="wx-data">--</span></div>
+        <div><span class="wx-label">WIND:</span> <span id="wx-wind" class="wx-data">--</span></div>
+    </div>
 </div>
 
 <script>
-    // Live ticking clock (keep it PST)
+    // 1. Live ticking clock
     function updateClock() {
         const now = new Date();
         document.getElementById('clock').textContent = now.toLocaleTimeString('en-US', { hour12: false }) + ' PST';
@@ -165,38 +166,46 @@
     setInterval(updateClock, 1000);
     updateClock();
 
-    // Mapping function to correctly populate the new columns.
-    // Ensure f.ident, f.type, f.origin/destination, and f.time all exist.
+    // 2. Fetch Flights from your GitHub Action
     fetch('Flights.json')
         .then(response => {
-            if (!response.ok) throw new Error("Data file not found");
+            if (!response.ok) throw new Error("File not found");
             return response.json();
         })
         .then(data => {
-            // Populate Arrivals
-            document.getElementById('arrivals-list').innerHTML = data.arrivals.map(f => 
-                `<tr>
-                    <td class="flight-id">${f.ident}</td>
-                    <td class="aircraft-type">${f.type || 'GA'}</td>
-                    <td>${f.origin}</td>
-                    <td class="status-time">${f.time || '--:--'}</td>
-                </tr>`
-            ).join('');
-            
-            // Populate Departures
-            document.getElementById('departures-list').innerHTML = data.departures.map(f => 
-                `<tr>
-                    <td class="flight-id">${f.ident}</td>
-                    <td class="aircraft-type">${f.type || 'GA'}</td>
-                    <td>${f.destination}</td>
-                    <td class="status-time">${f.time || '--:--'}</td>
-                </tr>`
-            ).join('');
+            const buildRow = f => `<tr><td class="flight-id">${f.ident}</td><td>${f.type || 'GA'}</td><td>${f.origin || f.destination}</td><td>${f.time || '--:--'}</td></tr>`;
+            document.getElementById('arrivals-list').innerHTML = data.arrivals.length ? data.arrivals.map(buildRow).join('') : '<tr><td colspan="4">NO ARRIVALS</td></tr>';
+            document.getElementById('departures-list').innerHTML = data.departures.length ? data.departures.map(buildRow).join('') : '<tr><td colspan="4">NO DEPARTURES</td></tr>';
         })
-        .catch(error => {
-            console.error("Board Error:", error);
-            document.getElementById('arrivals-list').innerHTML = `<tr><td colspan="4" style="color:#ff9f00;">AWAITING SIGNAL...</td></tr>`;
-            document.getElementById('departures-list').innerHTML = `<tr><td colspan="4" style="color:#ff9f00;">AWAITING SIGNAL...</td></tr>`;
+        .catch(() => {
+            document.getElementById('arrivals-list').innerHTML = `<tr><td colspan="4">AWAITING SIGNAL...</td></tr>`;
+            document.getElementById('departures-list').innerHTML = `<tr><td colspan="4">AWAITING SIGNAL...</td></tr>`;
+        });
+
+    // 3. Fetch Real-time Weather from National Weather Service (KWVI Station)
+    fetch('https://api.weather.gov/stations/KWVI/observations/latest')
+        .then(res => res.json())
+        .then(data => {
+            const props = data.properties;
+            
+            // Convert Celsius to Fahrenheit
+            const tempC = props.temperature.value;
+            const tempF = tempC !== null ? Math.round((tempC * 9/5) + 32) + '°F' : 'N/A';
+            
+            // Format Wind (e.g., 270° @ 10 MPH)
+            const windDir = props.windDirection.value !== null ? props.windDirection.value + '°' : 'VAR';
+            const windSpeedMph = props.windSpeed.value !== null ? Math.round(props.windSpeed.value * 0.621371) : 0;
+            const windStr = windSpeedMph > 0 ? `${windDir} @ ${windSpeedMph} MPH` : 'CALM';
+            
+            // Format Conditions
+            const condStr = props.textDescription || 'CLEAR';
+
+            document.getElementById('wx-temp').textContent = tempF;
+            document.getElementById('wx-wind').textContent = windStr;
+            document.getElementById('wx-cond').textContent = condStr.toUpperCase();
+        })
+        .catch(() => {
+            document.getElementById('wx-cond').textContent = "UNAVAILABLE";
         });
 </script>
 
