@@ -3,53 +3,147 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>KWVI Flight Tracker</title>
+    <title>KWVI Terminal Board</title>
     <style>
-        :root {
-            --bg-color: #f0f4f8;
-            --card-bg: #ffffff;
-            --primary-blue: #1e3a8a;
-            --accent-blue: #3b82f6;
-            --text-dark: #334155;
-            --text-light: #94a3b8;
+        body {
+            background-color: #050505;
+            color: #d1d5db;
+            font-family: 'Courier New', Courier, monospace;
+            margin: 0;
+            padding: 20px;
+            text-transform: uppercase;
         }
-        body { font-family: 'Segoe UI', Tahoma, sans-serif; background-color: var(--bg-color); color: var(--text-dark); margin: 0; padding: 40px 20px; }
-        .container { max-width: 800px; margin: 0 auto; }
-        h1 { text-align: center; color: var(--primary-blue); font-size: 2.5rem; margin-bottom: 10px; }
-        p.subtitle { text-align: center; color: var(--text-light); margin-bottom: 40px; }
-        .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
-        .card { background-color: var(--card-bg); border-top: 5px solid var(--accent-blue); border-radius: 8px; padding: 20px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); }
-        h2 { color: var(--primary-blue); border-bottom: 2px solid var(--bg-color); padding-bottom: 10px; margin-top: 0; }
-        .flight-item { padding: 10px 0; border-bottom: 1px solid #e2e8f0; font-size: 0.95rem; }
-        .tail-number { font-weight: bold; color: var(--accent-blue); }
+        .board-container {
+            max-width: 900px;
+            margin: 0 auto;
+            border: 2px solid #333;
+            padding: 20px;
+            background-color: #0a0a0a;
+            box-shadow: 0 0 20px rgba(0,0,0,0.8);
+        }
+        h1 {
+            text-align: center;
+            color: #facc15;
+            letter-spacing: 2px;
+            font-size: 2.5rem;
+            margin-top: 0;
+            border-bottom: 2px dashed #333;
+            padding-bottom: 20px;
+        }
+        .time-display {
+            text-align: right;
+            color: #10b981;
+            font-size: 1.2rem;
+            margin-bottom: 20px;
+        }
+        .section-title {
+            color: #3b82f6;
+            font-size: 1.5rem;
+            margin-top: 30px;
+            margin-bottom: 10px;
+            text-decoration: underline;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 1.2rem;
+        }
+        th {
+            text-align: left;
+            padding: 10px;
+            color: #9ca3af;
+            border-bottom: 1px solid #333;
+        }
+        td {
+            padding: 10px;
+            border-bottom: 1px solid #1f2937;
+        }
+        .flight-id {
+            color: #facc15;
+            font-weight: bold;
+        }
+        .status-ontime {
+            color: #10b981;
+        }
+        .status-blink {
+            color: #10b981;
+            animation: blink 2s infinite;
+        }
+        @keyframes blink {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.3; }
+        }
     </style>
 </head>
 <body>
-<div class="container">
-    <h1>KWVI Watsonville Traffic</h1>
-    <p class="subtitle">Auto-updates every 60 minutes</p>
-    <div class="grid">
-        <div class="card">
-            <h2>🛬 Arrivals</h2>
-            <div id="arrivals-list">Loading...</div>
-        </div>
-        <div class="card">
-            <h2>🛫 Departures</h2>
-            <div id="departures-list">Loading...</div>
-        </div>
-    </div>
+
+<div class="board-container">
+    <div class="time-display" id="clock">00:00:00</div>
+    <h1>KWVI FLIGHT INFORMATION</h1>
+
+    <div class="section-title">ARRIVALS</div>
+    <table>
+        <thead>
+            <tr>
+                <th>Flight</th>
+                <th>Origin</th>
+                <th>Status</th>
+            </tr>
+        </thead>
+        <tbody id="arrivals-list">
+            <tr><td colspan="3">LOADING DATA...</td></tr>
+        </tbody>
+    </table>
+
+    <div class="section-title">DEPARTURES</div>
+    <table>
+        <thead>
+            <tr>
+                <th>Flight</th>
+                <th>Destination</th>
+                <th>Status</th>
+            </tr>
+        </thead>
+        <tbody id="departures-list">
+            <tr><td colspan="3">LOADING DATA...</td></tr>
+        </tbody>
+    </table>
 </div>
+
 <script>
+    // Live ticking clock in the corner
+    function updateClock() {
+        const now = new Date();
+        document.getElementById('clock').textContent = now.toLocaleTimeString('en-US', { hour12: false }) + ' PST';
+    }
+    setInterval(updateClock, 1000);
+    updateClock();
+
+    // Grabs the automated flights.json data
     fetch('flights.json')
         .then(response => response.json())
         .then(data => {
-            document.getElementById('arrivals-list').innerHTML = data.arrivals.map(f => `<div class="flight-item"><span class="tail-number">${f.ident}</span> from ${f.origin}</div>`).join('');
-            document.getElementById('departures-list').innerHTML = data.departures.map(f => `<div class="flight-item"><span class="tail-number">${f.ident}</span> to ${f.destination}</div>`).join('');
+            document.getElementById('arrivals-list').innerHTML = data.arrivals.map(f => 
+                `<tr>
+                    <td class="flight-id">${f.ident}</td>
+                    <td>${f.origin}</td>
+                    <td class="status-ontime">ARRIVED</td>
+                </tr>`
+            ).join('');
+            
+            document.getElementById('departures-list').innerHTML = data.departures.map(f => 
+                `<tr>
+                    <td class="flight-id">${f.ident}</td>
+                    <td>${f.destination}</td>
+                    <td class="status-blink">DEPARTED</td>
+                </tr>`
+            ).join('');
         })
         .catch(error => {
-            document.getElementById('arrivals-list').innerHTML = "Wait for next update...";
-            document.getElementById('departures-list').innerHTML = "Wait for next update...";
+            document.getElementById('arrivals-list').innerHTML = `<tr><td colspan="3" style="color:red;">AWAITING SIGNAL...</td></tr>`;
+            document.getElementById('departures-list').innerHTML = `<tr><td colspan="3" style="color:red;">AWAITING SIGNAL...</td></tr>`;
         });
 </script>
+
 </body>
 </html>
