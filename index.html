@@ -1,163 +1,36 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>KWVI Terminal Board</title>
-    <style>
-        body {
-            background-color: #050505;
-            color: #d1d5db;
-            font-family: 'Courier New', Courier, monospace;
-            margin: 0;
-            padding: 20px;
-            text-transform: uppercase;
-        }
-        .board-container {
-            max-width: 900px;
-            margin: 0 auto;
-            border: 2px solid #333;
-            padding: 20px;
-            background-color: #0a0a0a;
-            box-shadow: 0 0 20px rgba(0,0,0,0.8);
-        }
-        h1 {
-            text-align: center;
-            color: #facc15;
-            letter-spacing: 2px;
-            font-size: 2.5rem;
-            margin-top: 0;
-            border-bottom: 2px dashed #333;
-            padding-bottom: 20px;
-        }
-        .time-display {
-            text-align: right;
-            color: #10b981;
-            font-size: 1.2rem;
-            margin-bottom: 20px;
-        }
-        .section-title {
-            color: #3b82f6;
-            font-size: 1.5rem;
-            margin-top: 30px;
-            margin-bottom: 10px;
-            text-decoration: underline;
-        }
-        table {
-            width: 100%;
-            border-collapse: collapse;
-            font-size: 1.2rem;
-        }
-        th {
-            text-align: left;
-            padding: 10px;
-            color: #9ca3af;
-            border-bottom: 1px solid #333;
-        }
-        td {
-            padding: 10px;
-            border-bottom: 1px solid #1f2937;
-        }
-        .flight-id {
-            color: #facc15;
-            font-weight: bold;
-        }
-        .status-ontime {
-            color: #10b981;
-        }
-        .status-blink {
-            color: #10b981;
-            animation: blink 2s infinite;
-        }
-        @keyframes blink {
-            0%, 100% { opacity: 1; }
-            50% { opacity: 0.3; }
-        }
-    </style>
-</head>
-<body>
-
-<div class="board-container">
-    <div class="time-display" id="clock">00:00:00</div>
-    <h1>KWVI FLIGHT INFORMATION</h1>
-
-    <div class="section-title">ARRIVALS</div>
-    <table>
-        <thead>
-            <tr>
-                <th>Flight</th>
-                <th>Origin</th>
-                <th>Status</th>
-            </tr>
-        </thead>
-        <tbody id="arrivals-list">
-            <tr><td colspan="3">LOADING DATA...</td></tr>
-        </tbody>
-    </table>
-
-    <div class="section-title">DEPARTURES</div>
-    <table>
-        <thead>
-            <tr>
-                <th>Flight</th>
-                <th>Destination</th>
-                <th>Status</th>
-            </tr>
-        </thead>
-        <tbody id="departures-list">
-            <tr><td colspan="3">LOADING DATA...</td></tr>
-        </tbody>
-    </table>
-</div>
+<div class="section-title">ARRIVALS</div>
+<table>
+    <thead>
+        <tr>
+            <th>Flight</th>
+            <th>Type</th> <th>Origin</th>
+            <th>Time</th> </tr>
+    </thead>
+    <tbody id="arrivals-list">
+        <tr><td colspan="4">LOADING...</td></tr>
+    </tbody>
+</table>
 
 <script>
-    // Live ticking clock in the corner
-    function updateClock() {
-        const now = new Date();
-        document.getElementById('clock').textContent = now.toLocaleTimeString('en-US', { hour12: false }) + ' PST';
-    }
-    setInterval(updateClock, 1000);
-    updateClock();
-
-    // FIXED: Now fetching 'Flights.json' with a capital 'F'
     fetch('Flights.json')
-        .then(response => {
-            if (!response.ok) throw new Error("File not found");
-            return response.json();
-        })
+        .then(response => response.json())
         .then(data => {
-            // Update Arrivals
-            if (data.arrivals && data.arrivals.length > 0) {
-                document.getElementById('arrivals-list').innerHTML = data.arrivals.map(f => 
-                    `<tr>
-                        <td class="flight-id">${f.ident}</td>
-                        <td>${f.origin}</td>
-                        <td class="status-ontime">${f.status || 'ARRIVED'}</td>
-                    </tr>`
-                ).join('');
-            } else {
-                document.getElementById('arrivals-list').innerHTML = `<tr><td colspan="3">NO RECENT ARRIVALS</td></tr>`;
-            }
+            document.getElementById('arrivals-list').innerHTML = data.arrivals.map(f => 
+                `<tr>
+                    <td class="flight-id">${f.ident}</td>
+                    <td style="color: #60a5fa">${f.type || 'GA'}</td>
+                    <td>${f.origin}</td>
+                    <td class="status-ontime">${f.time || '--:--'}</td>
+                </tr>`
+            ).join('');
             
-            // Update Departures
-            if (data.departures && data.departures.length > 0) {
-                document.getElementById('departures-list').innerHTML = data.departures.map(f => 
-                    `<tr>
-                        <td class="flight-id">${f.ident}</td>
-                        <td>${f.destination}</td>
-                        <td class="status-blink">${f.status || 'DEPARTED'}</td>
-                    </tr>`
-                ).join('');
-            } else {
-                document.getElementById('departures-list').innerHTML = `<tr><td colspan="3">NO RECENT DEPARTURES</td></tr>`;
-            }
-        })
-        .catch(error => {
-            console.error("Board Error:", error);
-            document.getElementById('arrivals-list').innerHTML = `<tr><td colspan="3" style="color:red;">AWAITING SIGNAL...</td></tr>`;
-            document.getElementById('departures-list').innerHTML = `<tr><td colspan="3" style="color:red;">AWAITING SIGNAL...</td></tr>`;
+            document.getElementById('departures-list').innerHTML = data.departures.map(f => 
+                `<tr>
+                    <td class="flight-id">${f.ident}</td>
+                    <td style="color: #60a5fa">${f.type || 'GA'}</td>
+                    <td>${f.destination}</td>
+                    <td class="status-blink">${f.time || '--:--'}</td>
+                </tr>`
+            ).join('');
         });
 </script>
-
-</body>
-</html>
