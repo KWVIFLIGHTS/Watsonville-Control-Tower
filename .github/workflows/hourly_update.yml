@@ -20,10 +20,11 @@ jobs:
       - name: Run Python Script
         run: python update_flights.py
 
-      - name: Commit and Push Changes
-        run: |
-          git config --global user.name 'GitHub Action Bot'
-          git config --global user.email 'action@github.com'
-          git add flights.json
-          git commit -m "Automated flight data update" || exit 0
-          git push
+     - name: Commit and Push Changes
+  run: |
+    git config --global user.name 'GitHub Action Bot'
+    git config --global user.email 'actions@github.com'
+    git add Flights.json
+    git commit -m "Automated flight data update" || exit 0
+    git pull --rebase origin main
+    git push origin main
