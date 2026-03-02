@@ -119,27 +119,41 @@
     setInterval(updateClock, 1000);
     updateClock();
 
-    // Grabs the automated flights.json data
-    fetch('flights.json')
-        .then(response => response.json())
+    // FIXED: Now fetching 'Flights.json' with a capital 'F'
+    fetch('Flights.json')
+        .then(response => {
+            if (!response.ok) throw new Error("File not found");
+            return response.json();
+        })
         .then(data => {
-            document.getElementById('arrivals-list').innerHTML = data.arrivals.map(f => 
-                `<tr>
-                    <td class="flight-id">${f.ident}</td>
-                    <td>${f.origin}</td>
-                    <td class="status-ontime">ARRIVED</td>
-                </tr>`
-            ).join('');
+            // Update Arrivals
+            if (data.arrivals && data.arrivals.length > 0) {
+                document.getElementById('arrivals-list').innerHTML = data.arrivals.map(f => 
+                    `<tr>
+                        <td class="flight-id">${f.ident}</td>
+                        <td>${f.origin}</td>
+                        <td class="status-ontime">${f.status || 'ARRIVED'}</td>
+                    </tr>`
+                ).join('');
+            } else {
+                document.getElementById('arrivals-list').innerHTML = `<tr><td colspan="3">NO RECENT ARRIVALS</td></tr>`;
+            }
             
-            document.getElementById('departures-list').innerHTML = data.departures.map(f => 
-                `<tr>
-                    <td class="flight-id">${f.ident}</td>
-                    <td>${f.destination}</td>
-                    <td class="status-blink">DEPARTED</td>
-                </tr>`
-            ).join('');
+            // Update Departures
+            if (data.departures && data.departures.length > 0) {
+                document.getElementById('departures-list').innerHTML = data.departures.map(f => 
+                    `<tr>
+                        <td class="flight-id">${f.ident}</td>
+                        <td>${f.destination}</td>
+                        <td class="status-blink">${f.status || 'DEPARTED'}</td>
+                    </tr>`
+                ).join('');
+            } else {
+                document.getElementById('departures-list').innerHTML = `<tr><td colspan="3">NO RECENT DEPARTURES</td></tr>`;
+            }
         })
         .catch(error => {
+            console.error("Board Error:", error);
             document.getElementById('arrivals-list').innerHTML = `<tr><td colspan="3" style="color:red;">AWAITING SIGNAL...</td></tr>`;
             document.getElementById('departures-list').innerHTML = `<tr><td colspan="3" style="color:red;">AWAITING SIGNAL...</td></tr>`;
         });
